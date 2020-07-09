@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CUSR筛选</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <style>
+        .filter {
+            display: flex;
+            flex-flow: wrap;
+            background-color: #f8f8f8;
+            margin-bottom: 1em;
+        }
+
+        .filter_block {
+            border-radius: 10px;
+            width: max-content;
+            padding: .2em .4em;
+            margin: 2px 5px;
+            border-color: darkorange;
+            border-style: solid;
+            flex: auto;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .filter_block_mouseover {
+            font-weight: bold;
+        }
+
+        .filter_on {
+            background-color: darkorange;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            background-color: ghostwhite;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th {
+            cursor: pointer;
+        }
+
+        th,
+        td {
+            padding: 0.2em;
+            border-bottom: solid;
+            border-width: 1px;
+        }
+    </style>
+</head>
+
+<body style="position: relative;left: 25%;max-width: 50%;">
+    <div id="filters">
+        <div id="filter_province" class="filter">
+            <div class="filter_block" 
+                 v-for="(province, idx) in provinces"
+                 v-bind:class="{ filter_on: active_provinces.indexOf(province) !== -1}" 
+                 @click="filter_switch">
+                {{ province }}
+            </div>
+        </div>
+        <div id="filter_subject" class="filter">
+            <div class="filter_block" 
+                 v-for="(subject, idx) in subjects"
+                 v-bind:class="{ filter_on: active_subjects.indexOf(subject) !== -1 }" 
+                 @click="filter_switch">
+                {{ subject }}
+            </div>
+        </div>
+    </div>
+    <hr>
+    <table id='schools_table'>
+        <thead>
+            <tr>
+                <th @click="sort_by_clicked" skey="scode">高校代码</th>
+                <th @click="sort_by_clicked" skey="sname">高校名称</th>
+                <th @click="sort_by_clicked" skey="addr">地址</th>
+                <th @click="sort_by_clicked" skey="subject">专业</th>
+                <th @click="sort_by_clicked" skey="cusr_level">评估等级</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="row in rows">
+                <td>{{ row.scode }}</td>
+                <td>{{ row.sname }}</td>
+                <td>{{ row.addr }}</td>
+                <td>{{ row.subject }}</td>
+                <td>{{ row.cusr_level }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <script>
+        let data_total = 2
+        let data_fetched = 0
+
+        let cusr = {}
+        let schools_addr = {}
+        let level = {
+            'A+': 0, 'A': 1, 'A-': 2,
+            'B+': 3, 'B': 4, 'B-': 5,
+            'C+': 6, 'C': 7, 'C-': 8,
+            'D+': 9, 'D': 10, 'D-': 11
+        }
+
+        fetch('cusr_result.json')
+            .then( function (rsp) { return rsp.json() } )
+            .then(
+                function (body) {
+                    cusr = body['result']
+                    data_fetched += 1
+                }
+            )
+            .catch(function(err) { console.error(err); alert('加载数据cusr_result.json失败') })
+
+        fetch('schools_addr.json')
+            .then( function (rsp) { return rsp.json() } )
+            .then(
+                function (body) {
+                    schools_addr = body
+                    data_fetched += 1
+                }
+            )
+            .catch(function(err) { console.error(err); alert('加载数据schools_addr.json失败') })
+
+        let interval_init_vue = setInterval(function () {
+            if (data_fetched !== data_total) return undefined
+            else clearInterval(interval_init_vue)
+
+
+            let filter_province = new Vue({
+                el: '#filter_province',
+                data: {
+                    provinces: ['全部', '北京市', '广东', '山东', '江苏', '河南', '上海市', '河北', '浙江', '香港', '陕西', '湖南', '重庆市', '福建', '天津市', '云南', '四川', '广西', '安徽', '海南', '江西', '湖北', '山西', '辽宁', '台湾', '黑龙江', '内蒙古', '澳门', '贵州', '甘肃', '青海', '新疆', '西藏', '吉林', '宁夏'],
+                    active_provinces: ['全部'],
+                },
+                methods: {
+                    filter_switch: function (event) {
+                        let province = event.target.innerText
+                        let idx = this.active_provinces.indexOf(province)
+                        if (idx === -1) { // 未选中
+                            this.active_provinces.push(province)
+                        } else { // 已选中
+                            this.active_provinces.splice(idx, 1)
+                        }
+
+                        if (province === '全部') {
+                            this.active_provinces = ['全部']
+                        } else {
+                            let all = this.active_provinces.indexOf('全部')
+                            if (all !== -1 && this.active_provinces.length > 1) {
+                                this.active_provinces.splice(all, 1)
+                            }
+                        }
+
+                        filter()
+                    },
+                }
+            })
+
+            let filter_subject = new Vue({
+                el: '#filter_subject',
+                data: {
+                    subjects: Object.keys(cusr),
+                    active_subjects: []
+                },
+                methods: {
+                    filter_switch: function (event) {
+                        let subject = event.target.innerText
+                        let idx = this.active_subjects.indexOf(subject)
+                        if (idx === -1) { // 未选中
+                            this.active_subjects.push(subject)
+                        } else { // 已选中
+                            this.active_subjects.splice(idx, 1)
+                        }
+                        filter()
+                    },
+                }
+            })
+
+            let schools_table = new Vue({
+                el: '#schools_table',
+                data: {
+                    rows: [],
+                    sort_info: {
+                        key: 'cusr_level',
+                        reverse: false
+                    }
+                },
+                methods: {
+                    sort_by_clicked: function (event) {
+                        let sk = event.target.attributes.skey.value
+                        if (sk !== this.sort_info.key) {
+                            this.sort_info = {
+                                key: sk,
+                                reverse: false
+                            }
+                        } else {
+                            this.sort_info.reverse = !this.sort_info.reverse
+                        }
+                        this.sort_table()
+                    },
+                    sort_table: function () {
+                        let reverse = function (v) { return v }
+                        if (this.sort_info.reverse) {
+                            reverse = function (v) { return -v }
+                        }
+
+                        let skey = this.sort_info.key
+                        if (skey === 'cusr_level') {
+                            this.rows = this.rows.sort(function (a, b) {
+                                return reverse(level[a[skey]] - level[b[skey]])
+                            })
+                        } else {
+                            this.rows = this.rows.sort(function (a, b) {
+                                let ak = a[skey]
+                                let bk = b[skey]
+                                return reverse(ak < bk ? -1 : (ak === bk ? 0 : 1))
+                            })
+                        }
+                    }
+                }
+            })
+
+            function filter() {
+                let rows = []
+                filter_subject.active_subjects.forEach(function (subject) {
+                    cusr[subject].forEach(function (school) {
+                        rows.push({
+                            sname: school.name,
+                            scode: school.code,
+                            cusr_level: school.result,
+                            subject: subject,
+                            addr: schools_addr[school.name]
+                        })
+                    })
+                })
+
+
+                let apro = filter_province.active_provinces
+                if (apro.indexOf('全部') === -1) {
+                    let new_rows = []
+                    rows.forEach(function (row) {
+                        for (let i = 0; i < apro.length; i += 1) {
+                            if (row.addr.indexOf(apro[i]) !== -1) {
+                                new_rows.push(row)
+                                break
+                            }
+                        }
+                    })
+                    rows = new_rows
+                }
+
+                schools_table.rows = rows
+                schools_table.sort_table()
+            }
+        }, 500)
+
+    </script>
+</body>
+
+</html>

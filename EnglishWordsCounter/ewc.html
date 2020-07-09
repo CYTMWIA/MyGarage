@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWC</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11 "></script>
+    <style>
+        th,td {
+            border-bottom: solid;
+            border-width: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: grid; grid-template: 'a b' auto/50%;">
+        <textarea id="input_box" placeholder="在此输入文本..." style="resize: vertical; position: fixed; width: 50%; top: 5px;" v-model="text"></textarea>
+        <div></div>
+        <div style="text-align: center;">
+            <table id="result_table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>单词</th>
+                        <th>出现形式</th>
+                        <th>出现次数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="row in rows">
+                        <td>{{ row.word }}</td>
+                        <td>{{ row.appearance }}</td>
+                        <td>{{ row.total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        let words_data = {
+            nouns: {
+                url:'words_data/data.noun.wordsonly.json',
+                type:'list',
+                value:undefined,
+                exist_map:{}
+            },
+            nouns_exc: {
+                url:'words_data/noun.exc.json',
+                type:'map',
+                value:undefined
+            },
+            verbs: {
+                url:'words_data/data.verb.wordsonly.json',
+                type:'list',
+                value:undefined,
+                exist_map:{}
+            },
+            verbs_exc: {
+                url:'words_data/verb.exc.json',
+                type:'map',
+                value:undefined
+            }
+        }
+        Object.keys(words_data).forEach(function (val,idx) {
+            fetch(words_data[val].url)
+                .then( function (rsp) { return rsp.json() } )
+                .then(
+                    function (body) {
+                        words_data[val].value = body
+                        if (words_data[val].type==='list') {
+                            words_data[val].value.forEach(function (word) {
+                                words_data[val].exist_map[word] = true
+                            })
+                        }
+                    }
+                )
+                .catch(function(err) { console.error(err); alert('加载数据'+val+'失败') })
+        })
+
+        function base_form(word) {
+            word = word.toLowerCase()
+
+            if (words_data.nouns.exist_map[word]!==undefined||words_data.verbs.exist_map[word]!==undefined) {
+                return word
+            } else if (words_data.nouns_exc.value[word]!==undefined) {
+                return words_data.nouns_exc.value[word]
+            } else if (words_data.verbs_exc.value[word]!==undefined) {
+                return words_data.verbs_exc.value[word]
+            }
+
+            let rules = [
+                [(w)=>{return w.length>1&&w.substring(w.length-1,w.length)==='s'}, (w)=>{return w.substring(0,w.length-1)}],
+                [(w)=>{return w.length>2&&w.substring(w.length-2,w.length)==='es'}, (w)=>{return w.substring(0,w.length-2)}],
+                [(w)=>{return w.length>3&&w.substring(w.length-3,w.length)==='ies'}, (w)=>{return w.substring(0,w.length-3)+'y'}],
+                [(w)=>{return w.length>3&&w.substring(w.length-3,w.length)==='ing'}, (w)=>{return w.substring(0,w.length-3)}],
+                [(w)=>{return w.length>3&&w.substring(w.length-3,w.length)==='ing'}, (w)=>{return w.substring(0,w.length-3)+'e'}],
+            ]
+            for (let i=0;i<rules.length;i+=1) {
+                if (rules[i][0](word)) {
+                    let base = rules[i][1](word)
+                    if (words_data.nouns.exist_map[base]!==undefined||words_data.verbs.exist_map[base]!==undefined) {
+                        return base
+                    }
+                }
+            }
+
+            return word
+        }
+
+        function filter_words(str) {
+            let alphabet = {'A':true,'a':true,'B':true,'b':true,'C':true,'c':true,'D':true,'d':true,'E':true,'e':true,'F':true,'f':true,'G':true,'g':true,'H':true,'h':true,'I':true,'i':true,'J':true,'j':true,'K':true,'k':true,'L':true,'l':true,'M':true,'m':true,'N':true,'n':true,'O':true,'o':true,'P':true,'p':true,'Q':true,'q':true,'R':true,'r':true,'S':true,'s':true,'T':true,'t':true,'U':true,'u':true,'V':true,'v':true,'W':true,'w':true,'X':true,'x':true,'Y':true,'y':true,'Z':true,'z':true}
+            let hyphen = {'\'':true,'-':true,'’':true,}
+            let words = []
+            let idx = 0
+            while (idx<str.length) {
+                if (alphabet[str[idx]]!==undefined) {
+                    let len = 1
+                    while (
+                        alphabet[str[idx+len]]!==undefined
+                        || ( hyphen[str[idx+len]]!==undefined && alphabet[str[idx+len+1]]!==undefined)
+                    ) { len += 1 }
+
+                    words.push(str.substr(idx,len))
+                    idx += len + 1
+                } else {
+                    idx += 1
+                }
+            } 
+            return words
+        }
+
+        function count_words(str) {
+            let words = filter_words(str)
+            let res = new Map()
+            words.forEach(function (word) {
+                let base = base_form(word)
+                if (!res.has(base)) {
+                    res.set(base,new Map([['appearance',new Map()],['total',0]]))
+                }
+                if (!res.get(base).get('appearance').has(word)) {
+                    res.get(base).get('appearance').set(word,0)
+                }
+                res.get(base).set('total',res.get(base).get('total')+1)
+                res.get(base).get('appearance').set(word, res.get(base).get('appearance').get(word)+1)
+            })
+            return res
+        }
+
+        setInterval(function () {
+            document.getElementById('input_box').style.height = window.innerHeight-15 + 'px'
+        }, 1000/30)
+
+
+        let interval_init_vue =  setInterval(function () {
+            let data_fetched = 0
+            Object.keys(words_data).forEach(function (key) { if (words_data[key].value !== undefined) data_fetched += 1 })
+            if (data_fetched===Object.keys(words_data).length) clearInterval(interval_init_vue)
+            else return undefined
+            
+
+            let input_box = new Vue({
+                el: '#input_box',
+                data: {
+                    text: '',
+                    last_modified: 0,
+                    text_taken: false
+                },
+                watch: {
+                    text: function (new_text, old_text) {
+                        this.last_modified = Date.now()
+                        this.text_taken = false
+                    }
+                }
+            })
+
+            let result_table = new Vue({
+                el: '#result_table',
+                data: {
+                    rows: []
+                }
+            })
+
+            setInterval(function () {
+                let delay = 500
+                if ((input_box.last_modified + delay <= Date.now()) && !input_box.text_taken) {
+                    input_box.text_taken = true
+
+                    let res = count_words(input_box.text)
+                    let rows = []
+                    res.forEach(function (info, word) {
+                        let row = {
+                            word: word,
+                            appearance: '',
+                            total: res.get(word).get('total')
+                        }
+                        info.get('appearance').forEach(function (appear_count, word_appear) {
+                            if (row.appearance.length > 0) row.appearance += ', '
+                            row.appearance += word_appear + '(' + appear_count + ')'
+                        })
+                        rows.push(row)
+                    })
+                    rows.sort(function (a, b) { return b.total - a.total })
+                    result_table.rows = rows
+                }
+            }, 1000 / 5)
+            
+        }, 500)
+
+    </script>
+</body>
+</html>
