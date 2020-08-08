@@ -9,3 +9,6 @@ I wrote these projects just for fun :)
 
 **EnglishWordsCounter** # 英语单词计数器
 * https://cytmwia.github.io/Just4Fun/EnglishWordsCounter/ewc.html
+
+**MonkeyScripts** # 油猴脚本(不保证兼容性)
+* https://github.com/CYTMWIA/Just4Fun/tree/master/MonkeyScripts
