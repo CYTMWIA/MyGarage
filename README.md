@@ -1,5 +1,5 @@
-# Just4Fun
-I wrote these projects just for fun :)
+# MyGarage
+I wrote these projects just for fun or personal use, and place them here for archive.
 
 
 ## Index
