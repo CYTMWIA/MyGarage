@@ -60,17 +60,13 @@
             <div class="filter_block" 
                  v-for="(province, idx) in provinces"
                  v-bind:class="{ filter_on: active_provinces.indexOf(province) !== -1}" 
-                 @click="filter_switch">
-                {{ province }}
-            </div>
+                 @click="filter_switch">{{ province }}</div>
         </div>
         <div id="filter_subject" class="filter">
             <div class="filter_block" 
                  v-for="(subject, idx) in subjects"
                  v-bind:class="{ filter_on: active_subjects.indexOf(subject) !== -1 }" 
-                 @click="filter_switch">
-                {{ subject }}
-            </div>
+                 @click="filter_switch">{{ subject }}</div>
         </div>
     </div>
     <hr>
