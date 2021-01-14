@@ -1,0 +1,20 @@
+{
+    "Buff": {
+        "InitArgs": [
+            "1-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        ],
+        "QueryString": "game=dota2#tab=selling&page_num=1"
+    },
+    "ExpectedRatio": 0.65,
+    "ExpectedVolume": 20,
+    "EnableSteamMarketApi": [
+        "ItemOrder"
+    ],
+    "SteamRequestsInterval": 8,
+    "SteamCopyPriceRatio": [
+        0.65,
+        0.7
+    ],
+    "PrintUnexpected": true,
+    "VerifySteamCertificate": true
+}
