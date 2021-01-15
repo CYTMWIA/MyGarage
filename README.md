@@ -10,10 +10,10 @@ I wrote these projects just for fun or personal use, and place them here for arc
 **[EnglishWordsCounter](https://cytmwia.github.io/MyGarage/EnglishWordsCounter/ewc.html)**
 英语单词计数器
 
-**[MonkeyScripts](https://github.com/CYTMWIA/MyGarage/tree/master/MonkeyScripts)**
+**[MonkeyScripts](MonkeyScripts)**
 油猴脚本（不保证兼容性）
 
-**[GuaDao](https://github.com/CYTMWIA/MyGarage/tree/master/GuaDao)**
+**[GuaDao](GuaDao)**
 Steam 挂刀脚本，详见[Keylol帖子](https://keylol.com/t580376-1-1)
 
 **[GameDumpers](GameDumpers)**
