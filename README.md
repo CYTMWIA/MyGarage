@@ -16,7 +16,7 @@ I wrote these projects just for fun or personal use, and place them here for arc
 **[GuaDao](https://github.com/CYTMWIA/MyGarage/tree/master/GuaDao)**
 Steam 挂刀脚本，详见[Keylol帖子](https://keylol.com/t580376-1-1)
 
-**[GameDumpers](https://github.com/CYTMWIA/MyGarage/tree/master/Dumpers)**
+**[GameDumpers](./tree/master/GameDumpers)**
 游戏解包脚本
 
 ...
