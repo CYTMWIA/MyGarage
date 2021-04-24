@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Fanatical_KeyDumper
-// @version      2021.4.24.0
+// @version      2021.4.24.1
 // @description  F站提取Key
 // @author       CYTMWIA
+// @match        http*://www.fanatical.com/*/orders
 // @match        http*://www.fanatical.com/*/orders/*
 // @require      https://cdn.jsdelivr.net/npm/vue@2.6.12
 // @grant        GM_setClipboard
