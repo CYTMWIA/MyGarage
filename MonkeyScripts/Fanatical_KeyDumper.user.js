@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Fanatical_KeyDumper
-// @version      2021.4.24.1
+// @version      2021.4.24.2
 // @description  F站提取Key
 // @author       CYTMWIA
-// @match        http*://www.fanatical.com/*/orders
-// @match        http*://www.fanatical.com/*/orders/*
+// @match        *://www.fanatical.com
+// @match        *://www.fanatical.com/*
 // @require      https://cdn.jsdelivr.net/npm/vue@2.6.12
 // @grant        GM_setClipboard
 // ==/UserScript==
@@ -13,6 +13,8 @@
     'use strict';
 
     function initHtml() {
+        if (window.location.pathname.match(/.*?\/orders\/.+/)===null) return false
+        
         let title_containers = document.getElementsByClassName('title-container')
         if (title_containers.length === 0) return false
 
