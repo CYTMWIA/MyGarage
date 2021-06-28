@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili_净化
 // @version      2020.8.8
-// @description  清理 Bilibili 中的推广及广告
+// @description  清理 Bilibili 中的推广及广告（建议使用 uBlock Origin）
 // @author       CYTMWIA
 // @match        https://www.bilibili.com/*
 // @match        https://www.bilibili.com/?*
